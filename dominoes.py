@@ -1,14 +1,63 @@
 import random
 import re
 
+set_snake = []
+turn = 0
+
+
+# 0 - p match value v
+# 1 - p need turn
+# -1 - do not match
+def compare(p, v):
+    if p[0] != v and p[1] != v:
+        return -1
+    return 0 if p[0] == v else 1
+
 def read_in(t, l):
-    while True:
+    if t == 0:
         cmd = input()
-        if t == 0:
-            return random.randint(-l, l)
-        if re.match('-?[0-9]+', cmd) and int(cmd) in range(-l, l + 1):
-            return int(cmd)
-        print("Invalid input. Please try again.")
+        k = []
+        while True:
+            i = random.randint(-l, l)
+            if i == 0 or len(k) == 2 * l + 1:
+                return 0
+            if i in k:
+                continue
+            j = abs(i) - 1
+            p = set_comp[j]
+            k.append(i)
+            right = compare(p, set_snake[len(set_snake) - 1][1])
+            left = compare(p, set_snake[0][0])
+            if i > 0 and right != -1 or i < 0 and left != -1:
+                break
+    else:
+        while True:
+            cmd = input()
+            if re.match('-?[0-9]+', cmd) and int(cmd) in range(-l, l + 1):
+                i = int(cmd)
+                if i == 0:
+                    return i
+                j = abs(i) - 1
+                p = set_player[j]
+                right = compare(p, set_snake[len(set_snake) - 1][1])
+                left = compare(p, set_snake[0][0])
+                if i > 0 and right == -1 or i < 0 and left == -1:
+                    print("Illegal move. Please try again.")
+                    continue
+                break
+            print("Invalid input. Please try again.")
+
+    j = abs(i) - 1
+    p = set_player.pop(j) if t == 1 else set_comp.pop(j)
+    if (i > 0 and right != 0) or (i < 0 and left == 0):
+        v = p[0]
+        p[0] = p[1]
+        p[1] = v
+    if i > 0:
+        set_snake.append(p)
+    else:
+        set_snake.insert(0, p)
+    return i
 
 def end_game(comp, play, snake):
     result = False
@@ -71,9 +120,6 @@ def get_max(list):
             vmax = list[i][0]
     return imax
 
-set_snake = []
-turn = 0
-
 # Start game
 while True:
     set_stock = gen_set_all()
@@ -112,19 +158,10 @@ while True:
     draw_prompt(turn)
     l = len(set_player) if turn == 1 else len(set_comp)
     i = read_in(turn, l)
-    # do turn
-    if turn == 0:
-        if i == 0:
+    if i == 0 and len(set_stock) > 0:
+        if turn == 0:
             set_comp.append(set_stock.pop())
-        elif i > 0:
-            set_snake.append(set_comp.pop(i - 1))
         else:
-            set_snake.insert(0, set_comp.pop(-i - 1))
-    else:
-        if i == 0:
             set_player.append(set_stock.pop())
-        elif i > 0:
-            set_snake.append(set_player.pop(i - 1))
-        else:
-            set_snake.insert(0, set_player.pop(-i - 1))
     turn = (turn + 1) % 2
+
