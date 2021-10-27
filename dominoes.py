@@ -53,8 +53,17 @@ while True:
     set_snake.append(p)
     break
 
-print(f"Stock pieces: {set_stock}")
-print(f"Computer pieces: {set_comp}")
-print(f"Player pieces: {set_player}")
-print(f"Domino snake: {set_snake}")
-print(f"Status: {status}")
+print("=" * 70)
+print(f"Stock size: {len(set_stock)}")
+print(f"Computer pieces: {len(set_comp)}")
+print()
+print(set_snake[0])
+print()
+print("Your pieces:")
+for i in range(1, len(set_player) + 1):
+    print(f"{i}:{set_player[i - 1]}")
+print()
+if status == "computer":
+    print("Status: Computer is about to make a move. Press Enter to continue...")
+else:
+    print("Status: It's your turn to make a move. Enter your command.")
