@@ -110,10 +110,8 @@ while True:
     if end_game(set_comp, set_player, set_snake):
         break
     draw_prompt(turn)
-
     l = len(set_player) if turn == 1 else len(set_comp)
     i = read_in(turn, l)
-
     # do turn
     if turn == 0:
         if i == 0:
@@ -130,4 +128,3 @@ while True:
         else:
             set_snake.insert(0, set_player.pop(-i - 1))
     turn = (turn + 1) % 2
-
