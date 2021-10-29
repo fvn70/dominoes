@@ -3,32 +3,48 @@ import re
 
 set_snake = []
 turn = 0
+count = {}
 
+def calc_score():
+    update_count()
+    score = {}
+    i = 0
+    for p in set_comp:
+        k = count[p[0]] + count[p[1]]
+        score[i] = k
+        i += 1
+    s = [k for k in sorted(score, key=score.get)]
+    return s
 
-# 0 - p match value v
-# 1 - p need turn
-# -1 - do not match
-def compare(p, v):
-    if p[0] != v and p[1] != v:
-        return -1
-    return 0 if p[0] == v else 1
+def update_count():
+    for i in range(7):
+        count[i] = 0
+    for p in set_snake:
+        count[p[0]] += 1
+        count[p[1]] += 1
+    for p in set_comp:
+        count[p[0]] += 1
+        count[p[1]] += 1
 
 def read_in(t, l):
+    left = False
     if t == 0:
         cmd = input()
         k = []
+        score = calc_score()
         while True:
-            i = random.randint(-l, l)
-            if i == 0 or len(k) == 2 * l + 1:
+            j = -1 if len(score) == 0 else score.pop()
+            if j == -1 or len(k) == 2 * l + 1:
                 return 0
-            if i in k:
+            if j in k:
                 continue
-            j = abs(i) - 1
+            k.append(j)
             p = set_comp[j]
-            k.append(i)
-            right = compare(p, set_snake[len(set_snake) - 1][1])
-            left = compare(p, set_snake[0][0])
-            if i > 0 and right != -1 or i < 0 and left != -1:
+            chk = check_snake(p, left, True)
+            if chk == -1:
+                left = True
+                chk = check_snake(p, left, True)
+            if chk != -1:
                 break
     else:
         while True:
@@ -36,28 +52,46 @@ def read_in(t, l):
             if re.match('-?[0-9]+', cmd) and int(cmd) in range(-l, l + 1):
                 i = int(cmd)
                 if i == 0:
-                    return i
+                    return 0
                 j = abs(i) - 1
                 p = set_player[j]
-                right = compare(p, set_snake[len(set_snake) - 1][1])
-                left = compare(p, set_snake[0][0])
-                if i > 0 and right == -1 or i < 0 and left == -1:
-                    print("Illegal move. Please try again.")
+                left = i < 0
+                chk = check_snake(p, left, False)
+                if chk != -1:
+                    break
+                else:
                     continue
-                break
             print("Invalid input. Please try again.")
 
-    j = abs(i) - 1
     p = set_player.pop(j) if t == 1 else set_comp.pop(j)
-    if (i > 0 and right != 0) or (i < 0 and left == 0):
+    to_snake(p, left, chk == 1)
+    return 1
+
+# 0 - p match value v
+# 1 - p need turn
+# -1 - do not match
+def check_snake(p, to_left, comp):
+    v = set_snake[0][0] if to_left else set_snake[len(set_snake) - 1][1]
+    if p[0] != v and p[1] != v:
+        result = -1
+    elif to_left:
+        result = 0 if p[1] == v else 1
+    else:
+        result = 0 if p[0] == v else 1
+    if not comp and result == -1:
+        print("Illegal move. Please try again.")
+    return result
+
+def to_snake(p, left, reverse):
+    if reverse:
         v = p[0]
         p[0] = p[1]
         p[1] = v
-    if i > 0:
-        set_snake.append(p)
-    else:
+    if left:
         set_snake.insert(0, p)
-    return i
+    else:
+        set_snake.append(p)
+
 
 def end_game(comp, play, snake):
     result = False
@@ -91,6 +125,10 @@ def draw_title(stock_size, comp_size):
     print("=" * 70)
     print(f"Stock size: {stock_size}")
     print(f"Computer pieces: {comp_size}")
+
+def draw_comp(list):
+    print("Comp pieces:")
+    print(list)
 
 def draw_player(list):
     print("Your pieces:")
@@ -137,20 +175,24 @@ while True:
     imax_player = get_max(set_player)
     if imax_comp == -1 and imax_player == -1:
         continue
+    p_comp = set_comp[imax_comp] if imax_comp >= 0 else [-1, -1]
+    p_pl = set_player[imax_player] if imax_player >= 0 else [-1, -1]
 
-    if set_comp[imax_comp][0] > set_player[imax_player][0]:
+    if p_comp[0] > p_pl[0]:
         p = set_comp.pop(imax_comp)
         turn = 1
     else:
         p = set_player.pop(imax_player)
         turn = 0
     set_snake.append(p)
+
     break
 
 # Game loop
 while True:
     # draw()
     draw_title(len(set_stock), len(set_comp))
+    # draw_comp(set_comp)
     draw_snake(set_snake)
     draw_player(set_player)
     if end_game(set_comp, set_player, set_snake):
