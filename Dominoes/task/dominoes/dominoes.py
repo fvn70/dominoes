@@ -69,14 +69,60 @@ def end_game(comp, play, snake):
     return result
 
 
+# 0 - p match value v
+# 1 - p need turn
+# -1 - do not match
+def compare(p, v):
+    if p[0] != v and p[1] != v:
+        return -1
+    return 0 if p[0] == v else 1
+
+
 def read_in(t, l):
-    while True:
+    if t == 0:
+        # computer turn
         cmd = input()
-        if t == 0:
-            return random.randint(-l, l)
-        if re.match('-?[0-9]+', cmd) and int(cmd) in range(-l, l + 1):
-            return int(cmd)
-        print("Invalid input. Please try again.")
+        k = []
+        while True:
+            i = random.randint(-l, l)
+            if i == 0 or len(k) == 2 * l + 1:
+                return 0
+            if i in k:
+                continue
+            j = abs(i) - 1
+            p = set_players[0][j]
+            k.append(i)
+            right = compare(p, set_snake[len(set_snake) - 1][1])
+            left = compare(p, set_snake[0][0])
+            if i > 0 and right != -1 or i < 0 and left != -1:
+                break
+    else:
+        # player turn
+        while True:
+            cmd = input()
+            if re.match('-?[0-9]+', cmd) and int(cmd) in range(-l, l + 1):
+                i = int(cmd)
+                if i == 0:
+                    return i
+                j = abs(i) - 1
+                p = set_players[1][j]
+                right = compare(p, set_snake[len(set_snake) - 1][1])
+                left = compare(p, set_snake[0][0])
+                if i > 0 and right == -1 or i < 0 and left == -1:
+                    print("Illegal move. Please try again.")
+                    continue
+                break
+            print("Invalid input. Please try again.")
+
+    j = abs(i) - 1
+    p = set_players[t].pop(j)
+    if (i > 0 and right != 0) or (i < 0 and left == 0):
+        p[0], p[1] = p[1], p[0]
+    if i > 0:
+        set_snake.append(p)
+    else:
+        set_snake.insert(0, p)
+    return i
 
 
 set_game = gen_set_game()
@@ -112,10 +158,6 @@ while True:
     draw_prompt(turn)
 
     i = read_in(turn, len(set_players[turn]))
-    if i == 0:
+    if i == 0 and len(set_stock) > 0:
         set_players[turn].append(set_stock.pop())
-    elif i > 0:
-        set_snake.append(set_players[turn].pop(i - 1))
-    else:
-        set_snake.insert(0, set_players[turn].pop(-i - 1))
     turn = (turn + 1) % 2
