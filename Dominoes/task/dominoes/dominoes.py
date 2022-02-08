@@ -72,10 +72,10 @@ def draw_prompt(t):
 
 def end_game():
     result = False
-    if len(set_players[0]) == 0:
+    if not set_players[0]:
         print("Status: The game is over. The computer won!")
         result = True
-    elif len(set_players[1]) == 0:
+    elif not set_players[1]:
         print("Status: The game is over. You won!")
         result = True
     else:
@@ -116,7 +116,7 @@ def read_in(t, l):
         k = []
         score = calc_score()
         while True:
-            j = -1 if len(score) == 0 else score.pop()
+            j = score.pop() if score else -1
             if j == -1 or len(k) == 2 * l + 1:
                 return 0
             if j in k:
@@ -194,6 +194,6 @@ while True:
     draw_prompt(turn)
 
     i = read_in(turn, len(set_players[turn]))
-    if i == 0 and len(set_stock) > 0:
+    if i == 0 and set_stock:
         set_players[turn].append(set_stock.pop())
     turn = (turn + 1) % 2
